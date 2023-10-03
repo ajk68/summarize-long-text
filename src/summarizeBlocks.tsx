@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getSelectedText, Action, ActionPanel, Detail, showToast, Icon } from "@raycast/api";
+import { Clipboard, open, getSelectedText, Action, ActionPanel, Detail, showToast, Icon } from "@raycast/api";
 import { FAILED_TO_GET_TEXT } from "./constants";
 import useAISummary from "./hooks/useAISummary";
 import { OpenPreferences } from "./openPreferences";
@@ -47,6 +47,11 @@ const App: React.FC = () => {
             url={`raycast://extensions/raycast/raycast-ai/ai-chat?fallbackText=${encodeURIComponent(
               summary as string
             )}`}
+          />
+          <Action
+            title="Copy and open in ChatGPT"
+            icon={Icon.Globe}
+            onAction={async () => (await Clipboard.copy(summary ?? ""), open("https://chat.openai.com"))}
           />
         </ActionPanel>
       }

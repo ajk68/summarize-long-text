@@ -44,7 +44,6 @@ If you find problems, please let me know in the "Issues" part of this project pa
 Things i want to do, but haven't managed yet...
 <ul>
     <li>Open in Chat Wait: See if chat can wait for a user to hit "submit."</li> 
-    <li>Clipboard and ChatGPT: Make a one-click action to copy result and go to ChatGPT</li>
     <li>Show Pricing: Show pricing in toast (with https://github.com/Cainier/gpt-tokens ?)</li> 
     <li>More Prompts: Support for different prompts (now hardcoded in prompts.ts)?</li>
 </ul>
