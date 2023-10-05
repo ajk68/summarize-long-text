@@ -11,6 +11,8 @@ import OpenAI from "openai";
  */
 const AskLLM = async (text: string, LLMParams: LLMParams): Promise<LLMResponse> => {
   let responseText = "";
+  let promptTokensUsed = 0;
+  let responseTokensUsed = 0;
 
   //console.log("AskLLM: LLMParams: ", LLMParams);
 
@@ -25,6 +27,8 @@ const AskLLM = async (text: string, LLMParams: LLMParams): Promise<LLMResponse> 
         messages: [{ role: "user", content: text }],
       });
       responseText = result.choices[0].message?.content || "";
+      promptTokensUsed += result.usage?.prompt_tokens || 0;
+      responseTokensUsed += result.usage?.completion_tokens || 0;
     } catch (error) {
       // TODO: add toast
       if (error instanceof Error) {
@@ -52,25 +56,67 @@ const AskLLM = async (text: string, LLMParams: LLMParams): Promise<LLMResponse> 
     throw new Error("Unsupported AI model");
   }
 
-  return { text: responseText };
+  return {
+    text: responseText,
+    promptTokensUsed: promptTokensUsed,
+    responseTokensUsed: responseTokensUsed,
+  };
 };
 
 export default AskLLM;
 
+/**
+ * Function to get the maximum tokens for a specified model.
+ *
+ * @param {string} modelName - The name of the model.
+ * @returns {number} The maximum number of tokens for the model.
+ */
 export function getModelMaxTokens(modelName: string) {
   const modelSizes: ModelSizes = {
     "raycast-gpt-3.5-turbo": 16000,
-    "OPENAI-gpt-3.5": 8000,
+    "OPENAI-gpt-3.5": 4000,
     "OPENAI-gpt-3.5-turbo-16k": 16000,
     "OPENAI-gpt-4": 8000,
   };
-
   return modelSizes[modelName] || 8000;
 }
 
+/**
+ * Function to get the usable tokens for a specified model.
+ *
+ * @param {string} modelName - The name of the model.
+ * @returns {number} The usable number of tokens for the model.
+ */
 export function getModelUsableTokens(modelName: string) {
   // This is a bit of a hack to get the max usable characters for a model
   // Get max token context size and substract 1000 for prompt and system and
   // 1500 tokens for response. Rest is for text to summarize
   return getModelMaxTokens(modelName) - 2500 || 5500;
+}
+
+interface TokenPrices {
+  [key: string]: [number, number];
+}
+
+/**
+ * Function to get the cost of using a specified model for prompt and response tokens.
+ *
+ * @param {string} modelName - The name of the model.
+ * @param {number} promptTokens - The number of prompt tokens.
+ * @param {number} responseTokens - The number of response tokens.
+ * @returns {number} The total cost.
+ */
+export function getCost(modelName: string, promptTokens: number, responseTokens: number): number {
+  // returns array with two elements price per 1000 tokens for prompt and response
+  // source: https://openai.com/pricing
+  const tokenPrices: TokenPrices = {
+    "raycast-gpt-3.5-turbo": [0, 0],
+    "OPENAI-gpt-3.5-turbo": [0.0015, 0.002],
+    "OPENAI-gpt-3.5-turbo-16k": [0.003, 0.004],
+    "OPENAI-gpt-4": [0.03, 0.06],
+  };
+
+  const [promptPrice, responsePrice] = tokenPrices[modelName] || [0, 0];
+  const cost = 0.001 * (promptPrice * promptTokens + responsePrice * responseTokens);
+  return cost;
 }

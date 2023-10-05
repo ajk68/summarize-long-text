@@ -21,7 +21,7 @@ import { useState, useEffect } from "react";
 import { getPreferenceValues, AI, environment, showToast } from "@raycast/api";
 import { getSummary, getTokens, getBlockSummaries } from "../utils";
 import { LLMParams } from "../interfaces";
-import { getModelUsableTokens } from "../AskLLM";
+import { getModelUsableTokens, getCost } from "../AskLLM";
 
 import {
   NO_ACCESS_TO_RAYCAST_AI,
@@ -99,25 +99,27 @@ const useAISummary = (text: string | null): { summary: string | null; isLoading:
         // console.log(`Command name: ${environment.commandName}`);
         showToast(textTokens > maxUsableTokens ? LONG_TEXT : SUMMARIZING_TEXT);
 
-        let finalSummary = "";
-        // if we want final summary or have a short text, we use final summary
+        let finalSummary: { text: string; promptTokensUsed: number; responseTokensUsed: number } | null = null;
         if (environment.commandName === "summarizeLongText" || textTokens < maxUsableTokens) {
-          // console.log("in summarizeLongText");
-          // Fetch summary from AI
           finalSummary = await getSummary(text as string, LLMParams);
-        }
-        // if we want the summaries of chunks without final summarization, we use block summaries
-        else if (environment.commandName === "summarizeBlocks") {
-          // console.log("in summarizeBlocks");
+        } else if (environment.commandName === "summarizeBlocks") {
           finalSummary = await getBlockSummaries(text as string, LLMParams);
         }
-        setSummary(finalSummary);
+        if (finalSummary) {
+          setSummary(finalSummary.text);
+          const cost = getCost(LLMParams.modelName, finalSummary.promptTokensUsed, finalSummary.responseTokensUsed);
+          let tokenMessage = "Text Summary.";
+          if (finalSummary.promptTokensUsed > 0 || finalSummary.responseTokensUsed > 0) {
+            tokenMessage = `tokens prompt: ${finalSummary.promptTokensUsed}, response: ${
+              finalSummary.responseTokensUsed
+            }, cost: $ ${cost.toFixed(4)}.`;
+          }
+          showToast({
+            ...SUCCESS_SUMMARIZING_TEXT,
+            message: tokenMessage,
+          });
+        }
         setIsLoading(false);
-
-        showToast({
-          ...SUCCESS_SUMMARIZING_TEXT,
-          message: `summary tokens: ${getTokens(finalSummary)}`,
-        });
       } catch (error: unknown) {
         error instanceof Error && showToast({ ...ERROR_SUMMARIZING_TEXT, message: error.message });
       }

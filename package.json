@@ -18,10 +18,6 @@
           "title": "Raycast AI 3.5"
         },
         {
-          "value": "OPENAI-gpt-3.5",
-          "title": "OpenAI gpt-3.5"
-        },
-        {
           "value": "OPENAI-gpt-3.5-turbo-16k",
           "title": "OpenAI gpt-3.5 turbo 16k"
         },

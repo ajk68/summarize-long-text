@@ -22,8 +22,12 @@ export interface LLMParams {
  */
 export interface LLMResponse {
   text: string;
+  promptTokensUsed: number;
+  responseTokensUsed: number;
 }
 
 export interface ModelSizes {
   [key: string]: number;
 }
+
+

@@ -29,8 +29,11 @@ You can set up the tool in several ways:
 ### Command View
 ![SummarizeLongText and SummarizeBlocks commands](./screenshot1.png)
 
-### Results View
+### Results of Recursively Summarize with Final Summary
 ![Results of Summarization](./screenshot2.png)
+
+### Summarize Chunks of Long Text without Final Summary
+![Results of Summarization](./screenshot4.png)
 
 ### Settings
 ![Settings](./screenshot3.png)
@@ -44,7 +47,7 @@ If you find problems, please let me know in the "Issues" part of this project pa
 Things i want to do, but haven't managed yet...
 <ul>
     <li>Open in Chat Wait: See if chat can wait for a user to hit "submit."</li> 
-    <li>Show Pricing: Show pricing in toast (with https://github.com/Cainier/gpt-tokens ?)</li> 
+    <li>Add openrouter, so we can use claude2, which is best at summarizing long documents</li>
     <li>More Prompts: Support for different prompts (now hardcoded in prompts.ts)?</li>
 </ul>
 

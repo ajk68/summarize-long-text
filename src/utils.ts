@@ -9,6 +9,8 @@ import { getModelUsableTokens } from "./AskLLM";
 // Define an interface for the result from the AI
 interface AIResult {
   text: string;
+  promptTokensUsed: number;
+  responseTokensUsed: number;
 }
 
 /**
@@ -43,9 +45,17 @@ export const splitText = async (text: string, chunkSize = 4000, chunkOverlap = 5
  *
  * @param text - The text to be split and summarized.
  * @param LLMParams - LLM parameters set in Preferences.
- * @returns A string of concatenated summaries.
+ * @returns A object with text, prompt and response tokens used.
  */
-export const getBlockSummaries = async (text: string, LLMParams: LLMParams): Promise<string> => {
+
+export const getBlockSummaries = async (
+  text: string,
+  LLMParams: LLMParams
+): Promise<{
+  text: string;
+  promptTokensUsed: number;
+  responseTokensUsed: number;
+}> => {
   // console.log("getBlockSummaries: ", text.length, " tokens: ", getTokens(text), " max usable tokens: ", getModelUsableTokens(LLMParams.modelName));
   const splitTexts = await splitText(text, getModelUsableTokens(LLMParams.modelName), 50);
   // console.log("SplitTexts: ", splitTexts.length);
@@ -55,10 +65,23 @@ export const getBlockSummaries = async (text: string, LLMParams: LLMParams): Pro
     splitTexts.map(async (summaryBlock, i) => {
       const prompt = getBlockSummaryPrompt(i, splitTexts.length, summaryBlock, LLMParams.language);
       const aiResult: AIResult = await AskLLM(prompt, LLMParams);
-      return aiResult.text;
+      return {
+        text: aiResult.text,
+        promptTokensUsed: aiResult.promptTokensUsed,
+        responseTokensUsed: aiResult.responseTokensUsed,
+      };
     })
   );
-  return temporarySummaries.join("\n");
+
+  const totalSummary = temporarySummaries.map((obj) => obj.text).join("\n");
+  const totalpromptTokensUsed = temporarySummaries.reduce((acc, obj) => acc + obj.promptTokensUsed, 0);
+  const totalresponseTokensUsed = temporarySummaries.reduce((acc, obj) => acc + obj.responseTokensUsed, 0);
+
+  return {
+    text: totalSummary,
+    promptTokensUsed: totalpromptTokensUsed,
+    responseTokensUsed: totalresponseTokensUsed,
+  };
 };
 
 /**
@@ -66,16 +89,34 @@ export const getBlockSummaries = async (text: string, LLMParams: LLMParams): Pro
  *
  * @param text - The text to summarize.
  * @param LLMParams - Object containing parameters like maximum number of characters (`maxChars`) and language set in preferences.
- * @returns The generated summary.
+ * @returns Object with text of summary, prompt and response tokens used.
  */
-export const getSummary = async (text: string, LLMParams: LLMParams): Promise<string> => {
+export const getSummary = async (
+  text: string,
+  LLMParams: LLMParams
+): Promise<{
+  text: string;
+  promptTokensUsed: number;
+  responseTokensUsed: number;
+}> => {
+  let promptTokensUsed = 0;
+  let responseTokensUsed = 0;
   // If text is too long, we need to split it in smaller chunks
   if (getTokens(text) > getModelUsableTokens(LLMParams.modelName)) {
-    text = await getBlockSummaries(text, LLMParams);
+    const res = await getBlockSummaries(text, LLMParams);
+    text = res.text;
+    promptTokensUsed += res.promptTokensUsed;
+    responseTokensUsed += res.responseTokensUsed;
   }
   const prompt = getFinalSummaryPrompt(text, LLMParams.language);
-  const result: AIResult = await AskLLM(prompt, LLMParams);
-  return result.text;
+  const res: AIResult = await AskLLM(prompt, LLMParams);
+  promptTokensUsed += res.promptTokensUsed;
+  responseTokensUsed += res.responseTokensUsed;
+  return {
+    text: res.text,
+    promptTokensUsed: promptTokensUsed,
+    responseTokensUsed: responseTokensUsed,
+  };
 };
 
 /**

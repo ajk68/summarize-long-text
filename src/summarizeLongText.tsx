@@ -49,7 +49,7 @@ const App: React.FC = () => {
             )}`}
           />
           <Action
-            title="Copy and open in ChatGPT"
+            title="Copy and Open in ChatGPT"
             icon={Icon.Globe}
             onAction={async () => (await Clipboard.copy(summary ?? ""), open("https://chat.openai.com"))}
           />
