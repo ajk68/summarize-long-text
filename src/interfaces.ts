@@ -29,5 +29,3 @@ export interface LLMResponse {
 export interface ModelSizes {
   [key: string]: number;
 }
-
-

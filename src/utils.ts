@@ -56,7 +56,14 @@ export const getBlockSummaries = async (
   promptTokensUsed: number;
   responseTokensUsed: number;
 }> => {
-  console.log("getBlockSummaries: ", text.length, " tokens: ", getTokens(text), " max usable tokens: ", getModelUsableTokens(LLMParams.modelName));
+  console.log(
+    "getBlockSummaries: ",
+    text.length,
+    " tokens: ",
+    getTokens(text),
+    " max usable tokens: ",
+    getModelUsableTokens(LLMParams.modelName)
+  );
   const splitTexts = await splitText(text, getModelUsableTokens(LLMParams.modelName), 0);
   console.log("SplitTexts: ", splitTexts.length);
 

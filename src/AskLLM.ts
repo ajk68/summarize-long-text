@@ -94,10 +94,10 @@ export function getModelUsableTokens(modelName: string) {
   // 1500 tokens for response. Rest is for text to summarize
   let maxUsableTokens = getModelMaxTokens(modelName) - 2500 || 1500;
   // TODO: clean this up after debugging
-  if (maxUsableTokens > 5000) { 
+  if (maxUsableTokens > 5000) {
     maxUsableTokens = 5000;
-  } 
-  return maxUsableTokens
+  }
+  return maxUsableTokens;
 }
 
 interface TokenPrices {
@@ -121,7 +121,7 @@ export function getCost(modelName: string, promptTokens: number, responseTokens:
     "OPENAI-gpt-3.5-turbo-1106": [0.001, 0.002],
     "OPENAI-gpt-4": [0.03, 0.06],
     "OPENAI-gpt-4-1106-preview": [0.01, 0.03],
-  }
+  };
 
   const [promptPrice, responsePrice] = tokenPrices[modelName] || [0, 0];
   const cost = 0.001 * (promptPrice * promptTokens + responsePrice * responseTokens);
