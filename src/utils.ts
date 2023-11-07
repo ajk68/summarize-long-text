@@ -1,4 +1,4 @@
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { RecursiveCharacterTextSplitter, TokenTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
 import AskLLM from "./AskLLM";
 import { getBlockSummaryPrompt, getFinalSummaryPrompt } from "./prompts";
@@ -21,22 +21,22 @@ interface AIResult {
  * @param chunkOverlap - Number of overlapping characters between chunks.
  * @returns An array of text chunks.
  */
-export const splitText = async (text: string, chunkSize = 4000, chunkOverlap = 50): Promise<string[]> => {
+export const splitText = async (text: string, chunkSize = 4000, chunkOverlap = 0): Promise<string[]> => {
   // Initialize the text splitter
   // Cannot get TokenTextSplitter to work, so converting to characters
-  const tokensInChars = Math.round((chunkSize * text.length) / getTokens(text));
+  const charsPerToken = text.length / getTokens(text);
+  console.log("CHARS PER TOKEN: ", charsPerToken);
+  const tokensInChars = Math.round(chunkSize * (text.length / getTokens(text)));
   const overlapInChars = Math.round((chunkOverlap * text.length) / getTokens(text));
-  //console.log("TOKENS IN CHARS: ", tokensInChars, "OVERLAP ", overlapInChars);
+  console.log("TOKENS IN CHARS: ", tokensInChars, "OVERLAP ", overlapInChars);
 
   const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: tokensInChars,
+    chunkSize: chunkSize,
     chunkOverlap: overlapInChars,
   });
 
-  // Perform the text split operation
+  // Split and return the chunks
   const docOutput = await splitter.splitDocuments([new Document({ pageContent: text })]);
-
-  // Return the chunks
   return docOutput.map((doc: Document) => doc.pageContent);
 };
 
@@ -56,15 +56,18 @@ export const getBlockSummaries = async (
   promptTokensUsed: number;
   responseTokensUsed: number;
 }> => {
-  // console.log("getBlockSummaries: ", text.length, " tokens: ", getTokens(text), " max usable tokens: ", getModelUsableTokens(LLMParams.modelName));
-  const splitTexts = await splitText(text, getModelUsableTokens(LLMParams.modelName), 50);
-  // console.log("SplitTexts: ", splitTexts.length);
+  console.log("getBlockSummaries: ", text.length, " tokens: ", getTokens(text), " max usable tokens: ", getModelUsableTokens(LLMParams.modelName));
+  const splitTexts = await splitText(text, getModelUsableTokens(LLMParams.modelName), 0);
+  console.log("SplitTexts: ", splitTexts.length);
 
   // Generate summaries for each text block
   const temporarySummaries = await Promise.all(
     splitTexts.map(async (summaryBlock, i) => {
       const prompt = getBlockSummaryPrompt(i, splitTexts.length, summaryBlock, LLMParams.language);
+      console.log("Prompt length: ", prompt.length);
+      console.log("Prompt: ", prompt);
       const aiResult: AIResult = await AskLLM(prompt, LLMParams);
+      console.log("AI Result: ", aiResult);
       return {
         text: aiResult.text,
         promptTokensUsed: aiResult.promptTokensUsed,

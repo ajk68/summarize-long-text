@@ -31,9 +31,10 @@ Keep these in mind:
 - Don't use any information not in the text below
  -Use simple words and short sentences so everyone can understand it
 - Use bullet points if possible
-- Write in Axios Smart Brevity style - quick and clear
+- Write in Smart Brevity style, like in the book The Power of Saying More with Less
 - Summary should be in ${language}
-- Start the summary with the text "\n<Summary of part ${index + 1} of ${splitTexts}>\n
+- Start the summary with the text "Begin of Summary part ${index + 1} of ${splitTexts}:"
+- End the summary with the text "End of Summary part ${index + 1} of ${splitTexts}.\n"
 
 Provided Text:
 ${summaryBlock}

@@ -18,12 +18,16 @@
           "title": "Raycast AI 3.5"
         },
         {
-          "value": "OPENAI-gpt-3.5-turbo-16k",
+          "value": "OPENAI-gpt-3.5-turbo-1106",
           "title": "OpenAI gpt-3.5 turbo 16k"
         },
         {
           "value": "OPENAI-gpt-4",
           "title": "OpenAI gpt-4"
+        },
+        {
+          "value": "OPENAI-gpt-4-1106-preview",
+          "title": "OpenAI gpt-4 Turbo"
         }
       ],
       "required": true

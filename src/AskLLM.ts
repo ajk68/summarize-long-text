@@ -75,8 +75,9 @@ export function getModelMaxTokens(modelName: string) {
   const modelSizes: ModelSizes = {
     "raycast-gpt-3.5-turbo": 16000,
     "OPENAI-gpt-3.5": 4000,
-    "OPENAI-gpt-3.5-turbo-16k": 16000,
+    "OPENAI-gpt-3.5-turbo-1106": 16000,
     "OPENAI-gpt-4": 8000,
+    "OPENAI-gpt-4-1106-preview": 10000,
   };
   return modelSizes[modelName] || 8000;
 }
@@ -91,7 +92,12 @@ export function getModelUsableTokens(modelName: string) {
   // This is a bit of a hack to get the max usable characters for a model
   // Get max token context size and substract 1000 for prompt and system and
   // 1500 tokens for response. Rest is for text to summarize
-  return getModelMaxTokens(modelName) - 2500 || 5500;
+  let maxUsableTokens = getModelMaxTokens(modelName) - 2500 || 1500;
+  // TODO: clean this up after debugging
+  if (maxUsableTokens > 5000) { 
+    maxUsableTokens = 5000;
+  } 
+  return maxUsableTokens
 }
 
 interface TokenPrices {
@@ -112,9 +118,10 @@ export function getCost(modelName: string, promptTokens: number, responseTokens:
   const tokenPrices: TokenPrices = {
     "raycast-gpt-3.5-turbo": [0, 0],
     "OPENAI-gpt-3.5-turbo": [0.0015, 0.002],
-    "OPENAI-gpt-3.5-turbo-16k": [0.003, 0.004],
+    "OPENAI-gpt-3.5-turbo-1106": [0.001, 0.002],
     "OPENAI-gpt-4": [0.03, 0.06],
-  };
+    "OPENAI-gpt-4-1106-preview": [0.01, 0.03],
+  }
 
   const [promptPrice, responsePrice] = tokenPrices[modelName] || [0, 0];
   const cost = 0.001 * (promptPrice * promptTokens + responsePrice * responseTokens);

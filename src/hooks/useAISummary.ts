@@ -70,7 +70,7 @@ const useAISummary = (text: string | null): { summary: string | null; isLoading:
         setIsLoading(false);
         const prefMessage = `"Text is too long (${text.length} characters and ${getTokens(
           text
-        )} tokens). Try to select a mode that supports this size"`;
+        )} tokens). Try to select a model that supports this size"`;
         setPrefMessage(prefMessage);
         showToast(TEXT_TOO_LONG);
         return;
